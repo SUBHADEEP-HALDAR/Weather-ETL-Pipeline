@@ -1,4 +1,4 @@
-#"""EXTRACT: fetch raw JSON from the Open-Meteo API and keep a copy on disk."""
+"""EXTRACT: fetch raw JSON from the Open-Meteo API and keep a copy on disk."""
 import json
 import logging
 from datetime import datetime
@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 def _session() -> requests.Session:
-    #"""Session that retries on temporary failures (429 / 5xx)."""
+    """Session that retries on temporary failures (429 / 5xx)."""
     retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
     s = requests.Session()
     s.mount("https://", HTTPAdapter(max_retries=retry))
@@ -38,7 +38,7 @@ def fetch_city(city: str, lat: float, lon: float) -> dict:
 
 
 def _save_raw(city: str, data: dict) -> None:
-   # """Keep the untouched response so you can re-process it later."""
+    """Keep the untouched response so you can re-process it later."""
     config.RAW_DIR.mkdir(exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = config.RAW_DIR / f"{city.lower()}_{stamp}.json"
