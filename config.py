@@ -1,4 +1,4 @@
-#"""Central settings for the ETL pipeline."""
+"""Central settings for the ETL pipeline."""
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -12,8 +12,8 @@ HOURLY_FIELDS = ["temperature_2m", "relative_humidity_2m", "precipitation", "win
 CITIES = {
     "Kolkata": (22.57, 88.36),
     "Durgapur": (23.52, 87.31),
+    "Bardhaman": (23.23, 87.86),
     "Delhi": (28.61, 77.21),
     "Mumbai": (19.08, 72.88),
 }
-
 TIMEZONE = "Asia/Kolkata"
