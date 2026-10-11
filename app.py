@@ -6,7 +6,7 @@ import streamlit as st
 
 import config
 
-REPO_URL = "https://github.com/SUBHADEEP-HALDAR/weather-etl-pipeline"
+REPO_URL = "https://github.com/SUBHADEEP-HALDAR/Weather-ETL-Pipeline"
 
 st.set_page_config(page_title="Weather ETL Dashboard", page_icon="🌦️", layout="wide")
 
@@ -22,9 +22,24 @@ def load_data() -> pd.DataFrame:
         conn.close()
 
 
+@st.cache_data(ttl=600)
+def load_last_run():
+    """Most recent pipeline run, or None if the run log doesn't exist yet."""
+    conn = sqlite3.connect(config.DB_PATH)
+    try:
+        return conn.execute(
+            "SELECT run_at, cities_ok, cities_failed FROM etl_runs "
+            "ORDER BY run_at DESC LIMIT 1"
+        ).fetchone()
+    except sqlite3.OperationalError:  # table not created yet
+        return None
+    finally:
+        conn.close()
+
+
 st.title("🌦️ Weather ETL Dashboard")
 st.caption(
-    "Data is collected automatically every day by an ETL pipeline "
+    "Data is collected automatically by a scheduled ETL pipeline "
     "(Open-Meteo API → Pandas → SQLite → GitHub Actions)."
 )
 
@@ -37,6 +52,22 @@ except Exception:
 if df.empty:
     st.warning("The database is empty. Run the pipeline first.")
     st.stop()
+
+# ---- last updated banner ----
+last_run = load_last_run()
+if last_run:
+    run_at = pd.to_datetime(last_run[0])
+    now_ist = pd.Timestamp.now(tz=config.TIMEZONE).tz_localize(None)
+    age_hours = (now_ist - run_at).total_seconds() / 3600
+    ok, failed = last_run[1], last_run[2]
+    msg = (f"🕒 Last updated: {run_at:%d %b %Y, %I:%M %p} IST "
+           f"({ok} of {ok + failed} cities updated)")
+    if age_hours > 12:
+        st.warning(msg + " - this data may be out of date.")
+    else:
+        st.success(msg)
+else:
+    st.info("The last-updated time will appear after the next pipeline run.")
 
 # ---- sidebar filters ----
 all_cities = sorted(df["city"].unique())

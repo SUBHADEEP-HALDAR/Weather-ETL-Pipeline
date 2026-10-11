@@ -1,4 +1,4 @@
-#"""Run the full ETL: python main.py"""
+"""Run the full ETL: python main.py"""
 import logging
 import sys
 
@@ -21,14 +21,16 @@ def run() -> int:
     log = logging.getLogger("main")
     conn = load.get_connection()
     failures = 0
+    total_rows = 0
     for city, (lat, lon) in config.CITIES.items():
         try:
             raw = extract.fetch_city(city, lat, lon)
             df = transform.transform(city, raw)
-            load.load(df, conn)
+            total_rows += load.load(df, conn)
         except Exception:
             failures += 1
             log.exception("Pipeline failed for %s", city)  # one city failing must not stop the rest
+    load.log_run(conn, len(config.CITIES) - failures, failures, total_rows)
     conn.close()
     log.info("Done. %d/%d cities failed", failures, len(config.CITIES))
     return 1 if failures else 0
