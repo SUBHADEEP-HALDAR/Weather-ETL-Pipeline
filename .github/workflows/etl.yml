@@ -2,7 +2,7 @@ name: Daily ETL
 
 on:
   schedule:
-    - cron: "30 0 * * *"   # 06:00 IST every day
+    - cron: "30 */6 * * *"   # every 6 hours: 00:30, 06:30, 12:30, 18:30 UTC
   workflow_dispatch:        # lets you run it manually
 
 permissions:
